@@ -1,5 +1,7 @@
 package services;
 
+
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ejb.LocalBean;
@@ -11,7 +13,7 @@ import javax.ejb.TransactionManagementType;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.transaction.Transactional;
+
 
 import entity.User;
 
@@ -32,17 +34,25 @@ public class UserService implements UserServiceLocal {
     }
 
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void updateUser(User user) {
+    public User updateUser(User user) {
     	User userToUpdate = (User)em.find(User.class, user.getId());
     	userToUpdate.setName(user.getName());
     	userToUpdate.setPassword(user.getPassword());
+    	return em.merge(userToUpdate);
+
     }
 	
     public void deleteUser(User user) {
-    	em.remove(user);
+    	User userToDelete = (User)em.find(User.class, user.getId());
+    	em.remove(userToDelete);
     }
 	
     public List<User> getAll() {
-    	return em.createQuery("Select t from " + User.class.getSimpleName() + " t").getResultList();
+    	List res = em.createQuery("Select t from " + User.class.getSimpleName() + " t").getResultList();
+    	List<User> userList = new ArrayList<User>();
+    	for(int i=0; i<res.size(); i++) {
+    		userList.add((User)res.get(i));
+    	}
+    	return userList;
     }
 }

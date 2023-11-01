@@ -8,8 +8,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.jboss.logging.Logger;
+
+import com.google.gson.Gson;
 
 import entity.User;
 import services.LoginService;
@@ -24,17 +27,7 @@ public class LoginServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
        
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-//    public LoginServlet() {
-//        super();
-//        // TODO Auto-generated constructor stub
-//    }
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String name = request.getParameter("name");
 		String password = request.getParameter("password");
@@ -43,9 +36,18 @@ public class LoginServlet extends HttpServlet {
 	    PrintWriter out = response.getWriter();  
 		
 		if (Validation.isNameValid(name) && Validation.isPasswordValid(password)) {
-			String user = LoginService.getUser(name, password);
-			System.out.println("1111111111111111111 "+user);
-			out.write("Welcome");
+			User user = LoginService.getUser(name, password);
+			
+			if(user != null) {
+				LOGGER.info(""+user);
+				String jsonUser = new Gson().toJson(user); 
+				HttpSession session = request.getSession();
+				session.setAttribute("id", user.getId());
+				out.write("Welcome "+jsonUser);	
+			} else {
+				out.write("User Not Found");
+			}
+			
 		} else {
 			out.write("Bad name ="+Validation.isNameValid(name)+" password="+Validation.isPasswordValid(password));
 		}
